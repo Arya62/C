@@ -1,0 +1,118 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+//구조체
+struct node{
+	int data;
+	struct node *link;
+} *ptr, *temp1, *temp2, *front[10], *rear[10];
+ 
+//함수 선언 
+void radixSorting(int *arr);
+
+//메인
+int main(void){
+	int i, value; //난수 개수, 생성된 난수값
+	int arr[20], sortingArr[20]; //난수값 저장한 배열, 정렬된 배열
+	srand(time(NULL)); //난수값 항상 다르게 생성
+	FILE * f;
+
+	//난수값 배열에 저장
+	for(i = 0; i < 20; i++){
+		value = 1000 + rand() % 9000; //1000 ~ 9999 의 난수값 생성
+		arr[i] = value; 
+	}
+
+	//난수값 배열 콘솔창 출력
+	printf("[정렬 전 배열]\n");
+	for(i = 0; i < 20; i++){
+		printf("%d ", arr[i]);
+	}
+	printf("\n\n");
+
+	//난수값 배열 파일에 쓰기
+	f = fopen("result.dat", "w");
+
+	fprintf(f, "[정렬 전 배열]\n");
+	for(i = 0; i < 20; i++){
+		fprintf(f, "%d ", arr[i]);
+	}
+	fprintf(f, "\n\n");
+
+	fclose(f);
+
+	//난수값 배열 연결리스트로 구성
+	ptr = NULL;
+	temp1 = (struct node *) malloc(sizeof(struct node)); //temp1 노드 생성
+	temp1 -> data = arr[0]; //temp1 노드에 배열0번 값 저장
+	temp1 -> link = NULL; //temp1 노드 다음은 노드 없음
+	ptr = temp1;
+
+	for (i = 1; i < 20; i ++){
+		temp2 = (struct node *)malloc(sizeof(struct node));
+		temp2 -> data = arr[i];
+		temp2 -> link = NULL;
+		temp1 -> link = temp2;
+		temp1 = temp2;
+	}
+
+	//기수정렬 알고리즘 함수 호출
+	radixSorting(arr); 
+	for(i = 0; i < 20; i++){
+		sortingArr[i] = ptr -> data; //배열에 정렬된 데이터 값 저장
+		ptr = ptr->link; //다음 데이터값 위치를 가리킴
+	}
+
+	//정렬된 배열 콘솔창 출력
+	printf("[정렬 후 배열]\n");
+	for(i = 0; i < 20; i++){
+		printf("%d ", sortingArr[i]);
+	}
+	printf("\n\n");
+
+	//파일에 쓰여진 내용 읽고 내용 뒤에 정렬된 배열 쓰기
+	f = fopen("result.dat", "a+");
+
+	fprintf(f, "[정렬 후 배열]\n");
+	for(i = 0; i < 20; i++){
+		fprintf(f, "%d ", sortingArr[i]);
+	}
+
+	fclose(f);
+	
+	return 0;
+}
+
+//기수정렬 알고리즘 함수 정의
+void radixSorting(int *arr){
+	int k, i, j, digit; //digit은 각 자리 값을 비교하기 위한 변수
+
+	for(i = 0; i < 4; i++){ //4자리 정수
+		for(j = 0; j < 10; j++){ //각 자리마다 0~9의 숫자
+			front[j] = rear[j] = NULL;
+		}
+		while(ptr){
+			digit = ptr -> data;
+			for(k = 0; k < i; k++){
+				digit = digit / 10;
+			}
+			digit = digit % 10;
+			if(front[digit] == NULL){
+				front[digit] = ptr;
+			}
+			else{
+				rear[digit]-> link = ptr;
+			}
+			rear[digit] = ptr;
+			ptr = ptr -> link;
+		}
+		ptr = NULL;
+		for(j = 9; j >= 0; j--)
+			if(front[j] != NULL){
+				rear[j] -> link = ptr;
+				ptr = front[j];
+			}
+	}
+}
