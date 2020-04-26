@@ -1,0 +1,108 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<Windows.h>
+#define SIZE 1000
+
+//노드구조 정의
+typedef struct node{
+	int number;
+	char name[SIZE];
+	struct node *link;
+}listNode;
+
+listNode *first = NULL;
+
+//함수선언
+void insertLinkedlist(listNode **first, int *count); //수강신청
+void deleteLinkedlist(listNode **first, int num, int *count); //수강포기
+void printLinkedlist(listNode **first); //수강자조회
+
+//메인
+int main(){
+	int count = 0;
+	
+	while(1){
+		int num2;
+		int choice;
+		
+		printf("학생정보 관리 프로그램\n");
+		printf("1. 수강신청 2. 수강포기 3. 수강자조회 4. 종료");
+		printf("선택하고자 하는 메뉴의 번호를 입력하세요.: ");
+		scanf("%d", &choice);
+		
+		switch(choice){
+		case 1: insertLinkedlist(&first, &count);
+				break; //수강신청
+
+		case 2: printLinkedlist(&first);
+				scanf("%d", &num2);
+				deleteLinkedlist(&first, num2, &count);
+				break; //수강포기
+
+		case 3: printLinkedlist(&first);
+				printf("메뉴로 돌아가시려면 아무 숫자를 눌러주세요.: ");
+				scanf("%d", &num2);
+				break; //수강자조회
+
+		case 4: return 0;
+				default:;
+		}
+		system("cls");
+	}
+	return 0;
+}
+
+//수강신청
+void insertLinkedlist(listNode **first, int *count){
+	listNode *temp;
+	temp = (listNode *)malloc(sizeof(listNode));
+	char buffer[SIZE];
+	int n;
+	
+	printf("수강 신청하고자 하는 학생의 학번을 입력하세요.: ");
+	scanf("%d", &n);
+	printf("수강 신청하고자 하는 학생의 이름을 입력하세요.: ");
+	scanf("%s", &buffer);
+
+	temp->number = n;
+	strcpy(temp->name, buffer);
+	temp->link = *first;
+	*first = temp;
+	*count = *count+1;
+}
+
+//수강포기
+void deleteLinkedlist(listNode **first, int num, int *count){
+	int i;
+	listNode *current;
+	listNode *temp;
+	current = *first;
+	
+	printf("번호를 선택하시오: ");
+	if(num == 1){
+		*first = current->link;
+		temp = current;
+	}
+	else{
+		for(i = 0; i < num-2 ; i++){
+			current = current->link;
+		}
+		temp = current->link;
+		current->link = temp->link;
+		*count = *count-1;
+	}
+	free(temp);
+} 
+
+//수강자조회
+void printLinkedlist(listNode **first){
+	listNode *current;
+	current = *first;
+	int i = 1;
+	while(current != NULL){
+		printf("%d. %d %s\n", i , current->number, current->name);
+		current = current->link;
+		i++;
+	}
+}
