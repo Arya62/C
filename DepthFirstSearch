@@ -1,0 +1,46 @@
+#include<stdio.h>
+#include<stdlib.h>
+#define SIZE 100
+
+int a[10][10]; //인접행렬
+int n; //정점개수
+int visited[10]; //정점의 방문여부 표시
+
+void insert(int a[], int *top, int v); //스택 추가함수
+int sdelete(int a[], int *top); //스택 삭제함수
+
+void readGraph1(char *인접행렬){
+	int i, v1, v2, edges; //edge=간선
+	FILE *fp = fopen(인접행렬, "r");
+	if(fp==NULL)
+		return;
+	fscanf(fp, "%d\n", &n);
+	fscanf(fp, "%d\n", &edges);
+	for(i = 0; i < edges; i++){
+		fscanf(fp, "%d %d", &v1, &v2);
+		a[v1][v2] = a[v2][v1] =1;
+	}
+	fclose(fp);
+	return;
+}
+
+void dfsMatrix(int v){
+	int a[10], top = -1, w;
+
+x: visited[v] = 1; printf("%d", v);
+y: for(w = 0; w < n; w++)
+	   if(a[v][w] && !visited[w]){
+		   insert(a, &top, v); v = w; goto x;
+	   }
+	   if(top != -1){
+		   v = sdelete(a, &top);
+		   goto y;
+	   }
+	   for(w = 0; w < n; w++)
+		if( a[v][w] && !visited[w])
+			insert(a, &top, v);
+}
+
+int main(void){
+	printf("%d",a[10][10]);
+}
