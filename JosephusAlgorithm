@@ -1,0 +1,86 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node{
+	int data;
+	node *prev;
+	node *next;
+} *temp, *temp2, *current, *del;
+
+void josephus(int n, int start, int m){
+	int i, j;
+	int *arr = (int*) malloc(sizeof(int) * n); //입력 받은 n만큼 배열 생성
+
+	for(i = 0; i < n; i++){
+		arr[i] = i+1;
+	}
+
+	//생성된 배열으로 원형 이중 연결리스트 구성
+	current = NULL;
+	temp = (node*)malloc(sizeof(node));
+	temp -> data = arr[0];
+	temp -> prev = NULL;
+	temp -> next = NULL;
+	current = temp;
+	for(i = 1; i < n; i++){
+		temp2 = (node*)malloc(sizeof(node));
+		temp2 -> data = arr[i];
+		temp2 -> prev = temp; 
+		temp2 -> next = NULL;
+		temp -> next = temp2;
+		temp = temp2;
+	}
+	//원형을 위해 마지막 노드를 처음노드로
+	temp2 -> next = current;
+	current -> prev = temp2;
+	
+	if(start > n || m > n){ //start와 m이 n보다 큰 수이면 프로그램 종료
+		printf("시작 위치와 제외할 사람의 위치는 %d이하의 수여야 합니다.\n", n);
+		exit(0);
+	}
+	else{
+		//start번째 노드를 current 노드로 지정
+		for(i = 0; i < start - 1; i++){
+			current = current -> next;
+		}
+
+		//m번째 노드 삭제
+		del = current; //current노드를 del에 저장하여 삭제
+		for(i = 0; i < (n - 1); i++){
+			for(j = 0; j < (m - 1); j++){
+				del = del -> next;
+			}
+			temp = del -> prev;
+			temp2 = del -> next;
+			temp -> next = temp2;
+			temp2 -> prev = temp;
+
+			printf("제외 순서 %d: %d번째 사람\n", (i + 1), del -> data);
+			del = del -> next; //제외한 다음 사람부터 카운트하기 위함
+		}
+	}
+}
+
+int main(void){
+	int n = 0, start = 0, m = 0; //n명의 사람, start번 째에 있는 사람부터 시작, m번째에 있는 사람 제외
+
+	//n, start, m 입력 받기
+	printf("원형 테이블에 몇 명의 사람이 모여있습니까? ");
+	scanf("%d", &n);
+
+	printf("몇 번째에 있는 사람부터 시작합니까? ");
+	scanf("%d", &start);
+
+	printf("몇 번째에 있는 사람을 제외시키겠습니까? ");
+	scanf("%d", &m);
+	printf("\n");
+
+	//함수 호출
+	josephus(n, start, m);
+
+	//결과 출력
+	printf("\n총 %d명, %d번째 부터 시작, %d번째 사람 제외한 후\n마지막에 남은 사람은 %d번째 사람입니다.\n", n, start, m, temp -> data);
+	
+	return 0;
+}
