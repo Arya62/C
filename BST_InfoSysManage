@@ -1,0 +1,368 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#include <windows.h>
+#include <conio.h>
+#include <string.h>
+
+struct btNode {
+	int number, score;
+	char name[25], residence[25];
+	struct btNode* left;
+	struct btNode* right;
+};
+
+struct btNode* tree = NULL;
+
+int N = 0;
+int n = 0;
+
+void retrival();	//검색
+void update();	//갱신
+void insert();	//추가
+int insertBST(struct btNode** tree, int number, char name[25], char residence[25], int score);	//추가한 데이터로 트리 구성
+int del();	//삭제
+void inorderTraversal(struct btNode* tree);	//중위순회
+void retrivelAll();	//전체 조회
+struct btNode* deleteQueue(struct btNode* q[], int n, int* front); //큐에서 삭제
+void insertQueue(struct btNode* q[], int n, int* rear, struct btNode* x);	//큐에 삽입
+void quit();	//종료, 트리의 데이터 값 파일에 저장
+void dataLoading();	//데이터 로딩
+
+int main(void) {
+	char ch;
+
+	dataLoading();
+	do {
+		system("cls");
+		printf("\n--------------------------------\n");
+		printf("\t정보 관리 시스템\t");
+		printf("\n--------------------------------\n");
+		printf("1. 검색(Retrieval('1')\n");
+		printf("2. 갱신(Update)('2')\n");
+		printf("3. 추가(Insert)('3')\n");
+		printf("4. 삭제(Delete)('4')\n");
+		printf("5. 전체조회(Sort List)('5')\n");
+		printf("6. 종료(Quit)('q')\n");
+		printf("--------------------------------\n");
+		printf("\n\n원하시는 서비스를 선택하세요. ");
+		ch = _getch();
+
+		switch (ch) {
+		case '1': system("cls");
+			retrival();
+			break;
+		case '2': system("cls");
+			update();
+			break;
+		case '3': system("cls");
+			insert();
+			break;
+		case '4': system("cls");
+			del();
+			break;
+		case '5': system("cls");
+			retrivelAll();
+			break;
+		case 'q': system("cls");
+			quit();
+			return(1);
+		default: system("cls");
+			printf("\n\n잘못 입력하셨습니다.\n");
+			printf("1~5 또는 q를 입력해주세요.\n");
+		}	//switch문 end
+		_getch();
+	} while (ch != 'q');	//ch가 q가 아니면 루프 반복
+}
+
+//검색
+void retrival() {
+	int search = 0; //검색할 학번
+	struct btNode* temp = tree;	//루트노드. while문을 통해 검색할 노드가 됨
+
+	printf("\n-----------검색 메뉴-----------\n");
+	printf("검색하실 학생의 학번을 입력하세요");
+	scanf("%d", &search);
+
+	while (temp != NULL) { //트리가 비어 있지 않을 때
+		if (temp->number < search)	//트리에서 저장된 학번이 입력한 학번보다 작으면
+			temp = temp->right;	//temp에 트리의 오른쪽 자식노드를 대입
+		else if (temp->number > search)	//트리에서 저장된 학번이 입력한 학번보다 크면
+			temp = temp->left;	//temp에 트리의 왼쪽 자식노드를 대입
+		else
+			break;
+	}
+	if (temp != NULL) {
+		printf("검색하신 학생의 정보입니다.\n");
+		printf("학번: %d\n", temp->number);
+		printf("이름: %s\n", temp->name);
+		printf("거주지: %s\n", temp->residence);
+		printf("성적: %d\n", temp->score);
+	}
+	else
+		printf("입력하신 학번은 등록되지 않은 정보입니다.\n");
+}
+
+//갱신
+void update() {
+	int search = 0; //수정할 학번 찾기
+	char name[25], residence[25];
+	int score = 0;
+
+	struct btNode* temp = tree;	//루트노드, while문을 통해 갱신할 노드가 됨
+
+	printf("\n-----------갱신 메뉴-----------\n");
+	printf("수정하실 학생의 학번을 입력하세요");
+	scanf("%d", &search);
+
+	while (temp != NULL) { //트리가 비어 있지 않을 때
+		if (temp->number < search)	//트리에서 저장된 학번이 입력한 학번보다 작으면
+			temp = temp->right;	//temp에 트리의 오른쪽 자식노드를 대입
+		else if (temp->number > search)	//트리에서 저장된 학번이 입력한 학번보다 크면
+			temp = temp->left;	//temp에 트리의 왼쪽 자식노드를 대입
+		else
+			break;
+	}
+	if (temp != NULL) {
+		printf("변경할 이름을 입력하세요: ");
+		scanf("%s", &name);
+		strcpy(temp->name, name);
+
+		printf("변경할 거주지를 입력하세요: ");
+		scanf("%s", &residence);
+		strcpy(temp->residence, residence);
+
+		printf("변경할 성적을 입력하세요: ");
+		scanf("%d", &score);
+		temp->score = score;
+
+		printf("갱신 완료");
+	}
+	else
+		printf("입력하신 학번은 등록되지 않은 정보입니다.\n");
+}
+
+//추가
+void insert() {
+	int number = 0, score = 0;	//학번, 성적
+	char name[25], residence[25];	//이름, 거주지
+	int success = 0; //트리로 추가 성공
+
+	printf("\n-----------추가 메뉴-----------\n");
+	printf("학번을 입력하세요: ");
+	scanf("%d", &number);
+	printf("이름을 입력하세요: ");
+	scanf("%s", &name);
+	printf("거주지를 입력하세요: ");
+	scanf("%s", &residence);
+	printf("성적을 입력하세요: ");
+	scanf("%d", &score);
+
+	success = insertBST(&tree, number, name, residence, score);
+
+	if (success) {
+		printf("추가 완료\n");
+		N++;
+	}
+	else
+		printf("입력하신 학번은 이미 등록되어 있는 정보입니다.\n");
+}
+
+//추가한 데이터로 트리 구성
+int insertBST(struct btNode** tree, int number, char name[25], char residence[25], int score) {
+	struct btNode* temp;
+
+	if (*tree == NULL) { //트리의 데이터가 비어있으면
+		temp = (struct btNode*)malloc(sizeof(struct btNode));
+		temp->number = number;	//temp -> number에 입력받은 number값 저장
+		strcpy(temp->name, name);	//temp -> name에 입력받은 name값 저장
+		strcpy(temp->residence, residence);
+		temp->score = score;
+		temp->left = temp->right = NULL;
+		*tree = temp;
+		return(1);
+	}
+	if (number == (*tree)->number)	//입력한 학번이 이미 있는 학번이라면 프로그램 종료
+		return(0);
+	if (number < (*tree)->number)	//입력한 학번이 트리의 데이터의 학번 보다 작으면 왼쪽 자식노드에 데이터들 추가
+		return(insertBST(&(*tree)->left, number, name, residence, score));
+	return(insertBST(&(*tree)->right, number, name, residence, score));	//그 외에는 오른쪽 자식노드에 데이터들 추가
+}
+
+//삭제
+int del() {
+	int search = 0;
+
+	struct btNode* temp = tree;	//루트노드
+	struct btNode* p = tree;	//탐색한 노드의 부모노드
+	struct btNode* c = tree;
+	struct btNode* d = tree;	//삭제할 노드
+
+	printf("\n-----------삭제 메뉴-----------\n");
+	printf("삭제하실 학생의 학번을 입력하세요");
+	scanf("%d", &search);
+
+	while (temp != NULL) { //트리가 비어 있지 않을 때
+		if (temp->number < search) {	//트리에서 저장된 학번이 입력한 학번보다 작으면
+			p = temp;
+			temp = temp->right;	//temp에 트리의 오른쪽 자식노드를 대입
+		}
+		else if (temp->number > search) {	//트리에서 저장된 학번이 입력한 학번보다 크면
+			p = temp;
+			temp = temp->left;	//temp에 트리의 왼쪽 자식노드를 대입
+		}
+		else
+			break;
+	}
+	if (temp != NULL) {
+		if (temp->left == NULL && temp->right == NULL) {//삭제노드가 리프인 경우
+			if (temp == p) { //삭제노드가 루트노드인 경우
+				printf("적어도 한 명은 남아있어야 함으로 삭제가 불가합니다.\n");
+				return(1);
+			}
+			if ((temp->number) < (p->number)) { //삭제노드가 그 부모노드의 왼쪽 자식노드인 경우
+				p->left = NULL;
+				printf("삭제 완료");
+				return(1);
+			}
+			else { //삭제노드가 그 부모노드의 오른쪽 자식노드인 경우
+				p->right = NULL;
+				printf("삭제 완료");
+				return(1);
+			}
+		}
+		else if (temp->left == NULL && temp->right != NULL) { //삭제노드가 오른쪽 자식노드만 갖는 경우
+			if ((temp->number) < (p->number)) { //삭제노드가 그 부모노드의 왼쪽 자식노드인 경우
+				d = temp;
+				p->left = temp->right;
+				printf("삭제 완료");
+				return(1);
+			}
+			else { //삭제노드가 그 부모노드의 오른쪽 자식노드인 경우
+				d = temp;
+				p->right = temp->right;
+				printf("삭제완료");
+				return(1);
+			}
+		}
+		else if (temp->left != NULL && temp->right == NULL) { //삭제노드가 왼쪽 자식만 갖는 경우
+			if ((temp->number) < (p->number)) { //삭제노드가 그 부모 노드의 왼쪽 자식노드인 경우
+				d = temp;
+				p->left = temp->left;
+				printf("삭제 완료");
+				return(1);
+			}
+			else { //삭제노드가 그 부모 노드의 오른쪽 자식노드인 경우
+				d = temp;
+				p->right = temp->left;
+				printf("삭제 완료");
+				return(1);
+			}
+		}
+		else { //삭제노드가 왼쪽, 오른쪽 자식을 둘 다 갖는 경우
+			if ((temp->number) < (p->number)) { //삭제노드가 그 부모 노드의 왼쪽 자식노드인 경우
+				p = temp;
+				c = temp->right;
+				while (c->right != NULL) {
+					p = c;
+					c = c->right;
+				}
+				temp->number = c->number;
+				strcpy(temp->name, c->name);
+				strcpy(temp->residence, c->residence);
+				temp->score = c->score;
+
+				p->right = NULL;
+				printf("삭제 완료");
+				return(1);
+			}
+			else { //삭제노드가 그 부모 노드의 오른쪽 자식노드인 경우
+				p = temp;
+				c = temp->left;
+				while (c->left != NULL) {
+					p = c;
+					c = c->left;
+				}
+				temp->number = c->number;
+				strcpy(temp->name, c->name);
+				strcpy(temp->residence, c->residence);
+				temp->score = c->score;
+
+				p->left = NULL;
+				printf("삭제 완료");
+				return(1);
+			}
+		}
+		n--;
+	}
+	else {
+		printf("입력하신 학번은 등록되지 않은 정보입니다.\n");
+		return(0);
+	}
+}
+
+//중위순회
+void inorderTraversal(struct btNode* tree) {
+	if (tree == NULL)
+		return;
+	inorderTraversal(tree->left);
+	printf("%d %s %s %d\n", tree->number, tree->name, tree->residence, tree->score);
+	inorderTraversal(tree->right);
+}
+
+//전체 조회
+void retrivelAll() {
+	inorderTraversal(tree);
+}
+
+struct btNode* deleteQueue(struct btNode* q[], int n, int* front) { //큐에서 삭제
+	*front = (*front + 1) % n;
+	return(q[*front]);
+}
+
+void insertQueue(struct btNode* q[], int n, int* rear, struct btNode* x) { //큐에 삽입
+	*rear = (*rear + 1) % N;
+	q[*rear] = x;
+}
+
+//종료, 트리의 데이터 값 파일에 저장
+void quit() {
+	FILE* f;
+	struct btNode* temp;
+	struct btNode* q[100];
+	int front = 0, rear = 0;
+
+	f = fopen("student-1.dat", "w");
+	rear = (rear + 1) % N;
+
+	if (tree == NULL)
+		fclose(f);
+	else {
+		q[rear] = tree;
+		while (front != rear) {
+			temp = deleteQueue(q, N, &front);
+			if (temp->left != NULL)
+				insertQueue(q, n, &rear, temp->left);
+			if (temp->right != NULL)
+				insertQueue(q, n, &rear, temp->right);
+			fprintf(f, "%d %s %s %d\n", temp->number, temp->name, temp->residence, temp->score);
+		}
+	}
+	printf("저장 완료\n프로그램이 종료됩니다.\n");
+}
+
+//데이터 로딩
+void dataLoading() {
+	int number = 0, score = 0;	//학번, 성적
+	char name[25], residence[25];	//이름, 거주지
+
+	struct btNode* temp = tree;
+	FILE* f;
+	f = fopen("student-1.dat", "r");
+
+	while (fscanf(f, "%d %s %s %d", &number, &name, &residence, &score) != EOF) {
+		insertBST(&tree, number, name, residence, score);
+		N++;
+	}
+	fclose(f);
+}
